@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { peerService, type PeerMessage } from '../../services/peerService';
 import { hostDraftManager } from '../../services/HostDraftManager';
 import { Card } from '../Card';
+import { shouldRotateCard } from '../../services/scryfall';
 import type { ScryfallCard } from '../../types';
 import type { MultiplayerDraftState } from '../../types/multiplayer';
 // Reuse styles from DraftPick
@@ -25,6 +26,13 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
     const currentPack = gameState?.hand || [];
     const pickNumber = gameState?.pickNumber || 1;
     const packNumber = gameState?.packNumber || 1;
+
+    useEffect(() => {
+        // Reset selection and waiting message when we move to a new pick/pack
+        // This avoids resetting UI when we just receive a polling update with the same state
+        setSelectedCard(null);
+        setWaitingMessage(null);
+    }, [gameState?.packNumber, gameState?.pickNumber]);
 
     useEffect(() => {
         let unsubscribeHost: (() => void) | undefined;
@@ -52,11 +60,6 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
 
         const handleDraftState = (msg: PeerMessage) => {
             setGameState(msg.payload);
-            // Only reset selection/waiting if we are actually moving to a new pick to avoid jarring UI on simple updates
-            // But since handleDraftState usually means "next pack/pick", reset is mostly correct.
-            // The issue before was spamming updates causing constant reset.
-            setSelectedCard(null);
-            setWaitingMessage(null);
         };
 
         peerService.on('pick_confirmed', handlePickConfirmed);
@@ -72,8 +75,6 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
 
             unsubscribeHost = hostDraftManager.subscribe((state) => {
                 setGameState(state);
-                setSelectedCard(null);
-                setWaitingMessage(null);
             });
         }
 
@@ -86,22 +87,20 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
         };
     }, [isHost, onComplete, roomId]);
 
-    // Request state on load (for Guests)
+    // State Polling (for Guests)
+    // We poll every 5 seconds to ensure we don't get desynced or stuck waiting
     useEffect(() => {
-        // Only request if we don't have state yet!
-        if (!isHost && !gameState) {
-            console.log("Requesting draft state from host...");
+        if (isHost) return;
+
+        // Immediate request on mount
+        peerService.send(roomId, 'request_state', {});
+
+        const interval = setInterval(() => {
             peerService.send(roomId, 'request_state', {});
+        }, 5000);
 
-            // Retry a few times if needed?
-            const interval = setInterval(() => {
-                console.log("Retry requesting draft state...");
-                peerService.send(roomId, 'request_state', {});
-            }, 2000);
-
-            return () => clearInterval(interval);
-        }
-    }, [isHost, roomId, gameState]);
+        return () => clearInterval(interval);
+    }, [isHost, roomId]);
 
     function handleConfirmPick() {
         if (!selectedCard) return;
@@ -117,42 +116,128 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
         }
     }
 
+    // Hover state for zooming
+    const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
+
+    // Determines which card to preview (hovered > selected)
+    const previewCard = hoveredCard || selectedCard;
+
+    function handleCardHover(card: ScryfallCard) {
+        setHoveredCard(card);
+    }
+
+    function handleCardLeave() {
+        setHoveredCard(null);
+    }
+
+    // Import helper if not already imported (it's not, we need to add it to imports)
+    // Actually, I'll add the import in a separate edit or assume I can add it now.
+    // Wait, I can't add imports easily with replace_file_content if I'm only replacing this block.
+    // I will replace the component body and then I will check imports.
+
+    // ... wait, I need `shouldRotateCard` which is not imported. 
+    // I should use multi_replace to handle imports and the component body.
+    // But since I'm here, I will just rewrite the component body to match the DraftPick structure
+    // and I'll do a separate pass for imports if needed, or I'll just use replace_file_content on the whole file 
+    // but that's risky if it's too big. The file is small enough (189 lines).
+    // Let's stick to the plan: I'll replace the return statement and add the necessary state/functions.
+
     if (!gameState) {
         return <div className="loading">Loading draft state...</div>;
     }
 
     if (waitingMessage) {
         return (
-            <div className="draft-container">
-                <div className="waiting-screen">
-                    <h2>Pack {packNumber}, Pick {pickNumber}</h2>
-                    <div className="waiting-animation">⏳</div>
-                    <p>{waitingMessage}</p>
-                    {gameState.waitingFor && gameState.waitingFor.length > 0 && (
-                        <p className="waiting-details">Waiting for: {gameState.waitingFor.join(', ')}</p>
-                    )}
+            <div className="draft-layout">
+                <div className="draft-main">
+                    <div className="waiting-screen">
+                        <h2>Pack {packNumber}, Pick {pickNumber}</h2>
+                        <div className="waiting-animation">⏳</div>
+                        <p>{waitingMessage}</p>
+                        {gameState.waitingFor && gameState.waitingFor.length > 0 && (
+                            <p className="waiting-details">Waiting for: {gameState.waitingFor.join(', ')}</p>
+                        )}
+                    </div>
+                </div>
+                {/* Still show sidebar while waiting so you can see your picks */}
+                <div className="draft-sidebar">
+                    <div className="card-preview-area">
+                        {/* Empty preview when waiting/no hover */}
+                        <div className="preview-placeholder">Waiting...</div>
+                    </div>
+                    {renderPickList()}
                 </div>
             </div>
         );
     }
 
-    return (
-        <div className="draft-container">
-            <header className="draft-header">
-                <div className="draft-info">
-                    <h2>Pack {packNumber} - Pick {pickNumber}</h2>
-                    <span className="pack-count">Cards: {currentPack.length}</span>
-                </div>
-                {/* Timer could go here */}
-            </header>
+    function renderPickList() {
+        return (
+            <div className="pool-preview">
+                <h3>Your Picks ({myPicks.length})</h3>
 
-            <main className="draft-main">
+                {(['mythic', 'rare', 'uncommon', 'common'] as const).map(rarity => {
+                    const cards = myPicks.filter(c => c.rarity === rarity);
+                    if (cards.length === 0) return null;
+
+                    return (
+                        <div key={rarity} className="pool-section">
+                            <div className="pool-section-title">
+                                <span className={`rarity-dot rarity-${rarity}`}></span>
+                                {rarity.charAt(0).toUpperCase() + rarity.slice(1)} ({cards.length})
+                            </div>
+                            <div className="pool-cards">
+                                {cards.map((card, i) => (
+                                    <div
+                                        key={`${card.id}-${i}`}
+                                        className="pool-card-wrapper"
+                                        onMouseEnter={() => handleCardHover(card)}
+                                        onMouseLeave={handleCardLeave}
+                                    >
+                                        <Card card={card} size="small" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
+    return (
+        <div className="draft-layout">
+            <div className="draft-main">
+                <div className="draft-header">
+                    <div className="draft-info">
+                        <div className="draft-info-item">
+                            <span className="draft-info-label">Pack</span>
+                            <span className="draft-info-value">{packNumber}</span>
+                        </div>
+                        <div className="draft-info-item">
+                            <span className="draft-info-label">Pick</span>
+                            <span className="draft-info-value">{pickNumber}</span>
+                        </div>
+                    </div>
+                    <div className="draft-controls">
+                        <button
+                            className="btn btn-primary"
+                            disabled={!selectedCard}
+                            onClick={handleConfirmPick}
+                        >
+                            Confirm Pick
+                        </button>
+                    </div>
+                </div>
+
                 <div className="pack-container">
                     {currentPack.map((card, index) => (
                         <div
                             key={`${card.id}-${index}`}
                             className={`pack-card ${selectedCard?.id === card.id ? 'selected' : ''}`}
                             onClick={() => setSelectedCard(card)}
+                            onMouseEnter={() => handleCardHover(card)}
+                            onMouseLeave={handleCardLeave}
                             onDoubleClick={() => {
                                 setSelectedCard(card);
                                 handleConfirmPick();
@@ -166,23 +251,26 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
                         </div>
                     ))}
                 </div>
-            </main>
+            </div>
 
-            <footer className="draft-footer">
-                <div className="draft-actions">
-                    <button
-                        className="btn btn-primary"
-                        disabled={!selectedCard}
-                        onClick={handleConfirmPick}
-                    >
-                        Confirm Pick
-                    </button>
-                    {selectedCard && <span className="selected-name">{selectedCard.name}</span>}
+            <div className="draft-sidebar">
+                {/* Large Card Preview */}
+                <div className="card-preview-area">
+                    {previewCard ? (
+                        // Note: We need to import shouldRotateCard or replicate it. 
+                        // I will assume I need to fix imports in next step.
+                        <div className={`preview-card fade-in ${shouldRotateCard(previewCard) ? 'rotated' : ''}`}>
+                            <Card card={previewCard} size="large" />
+                        </div>
+                    ) : (
+                        <div className="preview-placeholder">
+                            Hover a card to view
+                        </div>
+                    )}
                 </div>
-                <div className="my-picks-preview">
-                    <span>Picks: {myPicks.length}</span>
-                </div>
-            </footer>
+
+                {renderPickList()}
+            </div>
         </div>
     );
 }

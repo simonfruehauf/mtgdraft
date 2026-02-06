@@ -256,8 +256,11 @@ export function getAvailableBoosterTypes(set: ScryfallSet): ('play' | 'draft' | 
  * Determine if a card should be rotated 90 degrees for display (e.g. Split cards, Battles)
  */
 export function shouldRotateCard(card: ScryfallCard): boolean {
+    // Safety check for cached/partial data
+    if (!card) return false;
+
     // Battles (Sieges) are landscape
-    if (card.type_line.includes('Battle')) return true;
+    if (card.type_line && card.type_line.includes('Battle')) return true;
 
     // Split cards (including DSK Rooms)
     if (card.layout === 'split') return true;

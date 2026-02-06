@@ -21,7 +21,7 @@ export function buildCardPool(cards: ScryfallCard[]): CardPool {
         if (card.layout === 'token' || card.layout === 'art_series') continue;
 
         // Check if it's a basic land (special handling)
-        if (card.type_line.includes('Basic Land')) {
+        if (card.type_line && card.type_line.includes('Basic Land')) {
             pool.basicLands.push(card);
             continue;
         }
@@ -412,10 +412,11 @@ function generateGenericBooster(pool: CardPool): ScryfallCard[] {
 export async function generateBooster(
     setCode: string,
     boosterType: BoosterType,
-    setReleaseDate?: string
+    setReleaseDate?: string,
+    preFetchedCards?: ScryfallCard[]
 ): Promise<Booster> {
-    // Fetch cards for the set
-    const cards = await fetchSetCards(setCode);
+    // Fetch cards for the set (or use pre-fetched)
+    const cards = preFetchedCards || await fetchSetCards(setCode);
 
     // Check if we have enough cards
     if (cards.length === 0) {
@@ -468,11 +469,24 @@ export async function generateDraftBoosters(
 ): Promise<Booster[][]> {
     const allBoosters: Booster[][] = [];
 
+    // Optimization: Fetch cards ONCE for the whole draft
+    const cards = await fetchSetCards(setCode);
+
+    // Check if we have enough cards
+    if (cards.length === 0) {
+        throw new Error(`No booster-eligible cards found for set "${setCode}".`);
+    }
+
+    // Build the pool once (or we can let generateBooster build it, but passing cards is enough)
+    // Actually, generateBooster calls buildCardPool. 
+    // We should probably modify generateBooster to accept pre-fetched cards.
+
     // Generate packs for each player for each round
     for (let pack = 0; pack < numberOfPacks; pack++) {
         const roundBoosters: Booster[] = [];
         for (let player = 0; player < numberOfPlayers; player++) {
-            const booster = await generateBooster(setCode, boosterType, setReleaseDate);
+            // pass the pre-fetched cards
+            const booster = await generateBooster(setCode, boosterType, setReleaseDate, cards);
             roundBoosters.push(booster);
         }
         allBoosters.push(roundBoosters);

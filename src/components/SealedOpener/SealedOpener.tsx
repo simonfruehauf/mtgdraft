@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ScryfallCard, DraftSettings } from '../../types';
 import { generateBooster } from '../../services/boosterGenerator';
+import { fetchSetCards, shouldRotateCard } from '../../services/scryfall';
 import { Card } from '../Card';
-import { shouldRotateCard } from '../../services/scryfall';
 import './SealedOpener.css';
 
 interface SealedOpenerProps {
@@ -30,16 +30,20 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
             setLoading(true);
             const packs: ScryfallCard[][] = [];
 
+            // Optimization: Fetch cards once
+            const poolCards = await fetchSetCards(settings.setCode);
+
             for (let i = 0; i < settings.numberOfPacks; i++) {
                 const booster = await generateBooster(
                     settings.setCode,
-                    settings.boosterType
+                    settings.boosterType,
+                    undefined, // releaseDate
+                    poolCards // pre-fetched cards
                 );
                 packs.push(booster.cards);
             }
 
             setPacksOpened(packs);
-            setAllCards(packs.flat());
             setAllCards(packs.flat());
         } catch (err) {
             console.error(err);
@@ -109,7 +113,7 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
 
         openedCards.forEach(card => {
             const colors = card.colors || [];
-            if (card.type_line.includes('Land')) {
+            if (card.type_line && card.type_line.includes('Land')) {
                 groups.Land.push(card);
             } else if (colors.length === 0) {
                 groups.Colorless.push(card);

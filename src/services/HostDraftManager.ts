@@ -213,7 +213,12 @@ export class HostDraftManager {
                 }
             }
         }
-        this.broadcastState();
+
+        // If we just finished the draft (packNumber >= totalPacks), openNextPack() would have called finishDraft().
+        // In that case, we should NOT broadcast a "next state" because the draft is over.
+        if (this.isDrafting) {
+            this.broadcastState();
+        }
     }
 
     private finishDraft() {

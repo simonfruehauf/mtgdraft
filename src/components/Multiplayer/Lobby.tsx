@@ -7,7 +7,7 @@ import './Lobby.css';
 
 interface LobbyProps {
     settings: DraftSettings;
-    onHostStart: (roomId: string, players: MultiPlayer[]) => void;
+    onHostStart: (roomId: string, players: MultiPlayer[]) => Promise<void>;
     onGameStart: (roomId: string, players: MultiPlayer[]) => void;
     onBack: () => void;
 }
@@ -21,6 +21,7 @@ export function Lobby({ settings, onHostStart, onGameStart, onBack }: LobbyProps
     const [isHost, setIsHost] = useState(false);
     const [joined, setJoined] = useState(false);
     const [copySuccess, setCopySuccess] = useState('');
+    const [isStarting, setIsStarting] = useState(false);
 
     useEffect(() => {
         // Guest Listeners
@@ -99,9 +100,16 @@ export function Lobby({ settings, onHostStart, onGameStart, onBack }: LobbyProps
         }
     }
 
-    function handleStartDraft() {
+    async function handleStartDraft() {
         if (!isHost) return;
-        onHostStart(roomId, players);
+        setIsStarting(true);
+        try {
+            await onHostStart(roomId, players);
+        } catch (e) {
+            console.error(e);
+            // If it failed, stop loading
+            setIsStarting(false);
+        }
     }
 
     function copyToClipboard() {
@@ -186,9 +194,9 @@ export function Lobby({ settings, onHostStart, onGameStart, onBack }: LobbyProps
                     <button
                         className="btn btn-primary btn-large"
                         onClick={handleStartDraft}
-                        disabled={players.length < 2}
+                        disabled={players.length < 2 || isStarting}
                     >
-                        Start Draft ({settings.setName})
+                        {isStarting ? 'Generating Packs...' : `Start Draft (${settings.setName})`}
                     </button>
                 ) : (
                     <div className="waiting-message">
