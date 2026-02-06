@@ -262,7 +262,7 @@ function pickWildcard(pool: CardPool): ScryfallCard {
  */
 async function generatePlayBooster(
     pool: CardPool,
-    setCode: string,
+    _setCode: string,
     setReleaseDate?: string
 ): Promise<ScryfallCard[]> {
     const cards: ScryfallCard[] = [];

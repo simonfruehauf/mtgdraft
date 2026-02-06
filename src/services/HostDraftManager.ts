@@ -28,7 +28,7 @@ export class HostDraftManager {
         // Listen for picks from peers
         peerService.on('make_pick', (msg, conn) => this.handlePick(msg, conn));
         peerService.on('join_request', (msg, conn) => this.handleJoin(msg, conn));
-        peerService.on('request_state', (msg, conn) => this.handleRequestState(conn));
+        peerService.on('request_state', (_msg, conn) => this.handleRequestState(conn));
     }
 
     private handleRequestState(conn: DataConnection) {

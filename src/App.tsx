@@ -188,7 +188,6 @@ function App() {
         {screen === 'multiplayer-draft' && draftSettings && (
           <div className="container">
             <MultiplayerDraft
-              settings={draftSettings}
               roomId={multiplayerRoomId}
               onComplete={handleDraftComplete}
             />
