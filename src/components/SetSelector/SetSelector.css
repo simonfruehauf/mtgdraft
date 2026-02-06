@@ -1,0 +1,77 @@
+.set-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.set-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    min-width: 250px;
+}
+
+.set-selector-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+    padding: 1.5rem 2rem;
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.selected-set-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.selected-set-info .set-icon {
+    width: 48px;
+    height: 48px;
+}
+
+.set-card-count {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.booster-type-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.booster-type-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+}
+
+.error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+}
+
+.error-text {
+    color: var(--accent-mythic);
+    font-size: 1.125rem;
+}

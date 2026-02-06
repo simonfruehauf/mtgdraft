@@ -1,0 +1,13 @@
+--- Showcase Cards Analysis ---
+Total Showcase Found: 93
+Sample Showcase Card Booster Status:
+Agrus Kos, Spirit of Justice (354): booster=false
+Agrus Kos, Spirit of Justice (383): booster=false
+Alquist Proft, Master Sleuth (355): booster=false
+Alquist Proft, Master Sleuth (384): booster=false
+Analyze the Pollen (308): booster=false
+Anzrag's Rampage (303): booster=false
+Anzrag, the Quake-Mole (356): booster=false
+Anzrag, the Quake-Mole (385): booster=false
+Assemble the Players (287): booster=false
+Audience with Trostani (309): booster=false

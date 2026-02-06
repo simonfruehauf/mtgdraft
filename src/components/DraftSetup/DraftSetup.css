@@ -1,0 +1,166 @@
+.draft-setup {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.draft-setup-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.draft-setup-header h2 {
+    flex: 1;
+}
+
+.draft-setup-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Selected set display */
+.selected-set {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: var(--bg-card);
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-glow);
+}
+
+.set-icon-large {
+    width: 64px;
+    height: 64px;
+    filter: invert(1);
+}
+
+.selected-set-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.set-details {
+    color: var(--text-secondary);
+}
+
+/* Setup options */
+.setup-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.setup-option {
+    padding: 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.setup-option .form-label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.option-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.option-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Mode selection buttons */
+.mode-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.mode-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1rem !important;
+    min-height: 100px;
+}
+
+.mode-icon {
+    font-size: 1.75rem;
+}
+
+.mode-title {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.mode-desc {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    font-weight: 400;
+}
+
+.timer-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.timer-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+}
+
+.option-hint {
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+/* Summary */
+.setup-summary {
+    padding: 1.25rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.setup-summary h4 {
+    margin-bottom: 0.75rem;
+    color: var(--accent-gold);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.setup-summary ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.setup-summary li {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+}
+
+.setup-summary li strong {
+    color: var(--text-primary);
+}
+
+/* Start button */
+.start-button {
+    align-self: center;
+    min-width: 200px;
+}

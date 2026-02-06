@@ -1,0 +1,251 @@
+/* Main Layout */
+.draft-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    /* Main area + Sidebar */
+    height: calc(100vh - 64px);
+    /* Subtract header height */
+    overflow: hidden;
+}
+
+.draft-main {
+    padding: 2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.draft-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.draft-info {
+    display: flex;
+    gap: 2rem;
+}
+
+.draft-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.draft-info-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.draft-info-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-gold);
+}
+
+.draft-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.confirm-pick-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    min-width: 140px;
+}
+
+.timer {
+    background: var(--bg-tertiary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius-md);
+    font-family: monospace;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.timer.warning {
+    color: var(--error-color);
+    border-color: var(--error-color);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        background: rgba(220, 53, 69, 0.1);
+    }
+
+    50% {
+        background: rgba(220, 53, 69, 0.3);
+    }
+
+    100% {
+        background: rgba(220, 53, 69, 0.1);
+    }
+}
+
+/* Pack Container */
+.pack-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.pack-card {
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+
+/* Selected state - simple highlight border or lift */
+.pack-card.selected .card-container {
+    box-shadow: 0 0 0 3px var(--accent-gold), var(--shadow-hover);
+    transform: translateY(-5px);
+}
+
+/* Sidebar */
+.draft-sidebar {
+    background: var(--bg-tertiary);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* Large Card Preview */
+.card-preview-area {
+    padding: 1.5rem;
+    height: 380px;
+    /* Fixed height for consistent space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.preview-card {
+    transition: transform var(--transition-normal);
+    transform-origin: center center;
+    transform: scale(1.1);
+    /* Slightly larger than normal large */
+}
+
+.preview-card.rotated {
+    transform: rotate(90deg) scale(0.9);
+}
+
+.preview-placeholder {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    opacity: 0.6;
+}
+
+/* Picks Pool */
+.pool-preview {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.pool-preview h3 {
+    font-size: 1rem;
+    margin: 0;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.pool-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pool-section-title {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.rarity-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.rarity-dot.rarity-mythic {
+    background: var(--accent-mythic);
+    box-shadow: 0 0 4px var(--accent-mythic);
+}
+
+.rarity-dot.rarity-rare {
+    background: var(--accent-gold);
+    box-shadow: 0 0 4px var(--accent-gold);
+}
+
+.rarity-dot.rarity-uncommon {
+    background: var(--accent-uncommon);
+}
+
+.rarity-dot.rarity-common {
+    background: #444;
+}
+
+.pool-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.5rem;
+}
+
+.pool-card-wrapper img {
+    border-radius: 4px;
+    /* Slightly tighter radius for small cards */
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .draft-layout {
+        grid-template-columns: 1fr 250px;
+    }
+
+    .card-preview-area {
+        height: 320px;
+    }
+}
+
+@media (max-width: 768px) {
+    .draft-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+    }
+
+    .draft-main {
+        overflow: visible;
+        height: auto;
+    }
+
+    .draft-sidebar {
+        display: none;
+        /* Hide sidebar on mobile for now, or make it a drawer */
+    }
+}
