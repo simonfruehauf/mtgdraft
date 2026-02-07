@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ScryfallCard, DraftSettings, BotPlayer } from '../../types';
 import { generateDraftBoosters } from '../../services/boosterGenerator';
 import { Card } from '../Card';
@@ -139,6 +139,58 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
     function handleCardLeave() {
         setHoveredCard(null);
     }
+
+    // Keyboard navigation
+    const handleKeyDown = useCallback((e: KeyboardEvent) => {
+        if (loading || currentPack.length === 0) return;
+
+        // Number keys 1-9 to select cards
+        if (e.key >= '1' && e.key <= '9') {
+            const index = parseInt(e.key) - 1;
+            if (index < currentPack.length) {
+                setSelectedCard(currentPack[index]);
+                setHoveredCard(currentPack[index]);
+            }
+            return;
+        }
+
+        // Arrow keys to navigate
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            const currentIndex = selectedCard
+                ? currentPack.findIndex(c => c.id === selectedCard.id)
+                : -1;
+
+            let newIndex: number;
+            if (e.key === 'ArrowLeft') {
+                newIndex = currentIndex <= 0 ? currentPack.length - 1 : currentIndex - 1;
+            } else {
+                newIndex = currentIndex >= currentPack.length - 1 ? 0 : currentIndex + 1;
+            }
+
+            setSelectedCard(currentPack[newIndex]);
+            setHoveredCard(currentPack[newIndex]);
+            return;
+        }
+
+        // Enter to confirm pick
+        if (e.key === 'Enter' && selectedCard) {
+            e.preventDefault();
+            confirmPick();
+            return;
+        }
+
+        // Escape to deselect
+        if (e.key === 'Escape') {
+            setSelectedCard(null);
+            return;
+        }
+    }, [loading, currentPack, selectedCard]);
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleKeyDown]);
 
     function handleCardClick(card: ScryfallCard) {
         // Toggle selection or select new
@@ -320,7 +372,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                 </div>
 
                 <div className="pack-container">
-                    {currentPack.map(card => (
+                    {currentPack.map((card, index) => (
                         <div
                             key={card.id}
                             className={`pack-card ${selectedCard?.id === card.id ? 'selected' : ''}`}
@@ -333,6 +385,9 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                                 card={card}
                                 selected={selectedCard?.id === card.id}
                             />
+                            {index < 9 && (
+                                <span className="card-hotkey">{index + 1}</span>
+                            )}
                         </div>
                     ))}
                 </div>

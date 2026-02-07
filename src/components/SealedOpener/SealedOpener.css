@@ -118,6 +118,88 @@
     cursor: pointer;
 }
 
+/* Mythic reveal burst animation */
+.pack-card-reveal.flipped .flip-card-front::before {
+    content: '';
+    position: absolute;
+    inset: -20px;
+    border-radius: var(--radius);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+}
+
+/* Mythic reveal - orange/red burst */
+.pack-card-reveal.is-mythic.flipped .flip-card-front::before {
+    background: radial-gradient(circle, rgba(227, 77, 58, 0.8) 0%, transparent 70%);
+    animation: mythicBurst 0.8s ease-out forwards;
+}
+
+/* Rare reveal - golden burst */
+.pack-card-reveal.is-rare.flipped .flip-card-front::before {
+    background: radial-gradient(circle, rgba(201, 162, 39, 0.6) 0%, transparent 70%);
+    animation: rareBurst 0.6s ease-out forwards;
+}
+
+@keyframes mythicBurst {
+    0% {
+        opacity: 1;
+        transform: scale(0.5);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2);
+    }
+}
+
+@keyframes rareBurst {
+    0% {
+        opacity: 0.8;
+        transform: scale(0.5);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.8);
+    }
+}
+
+/* Mythic card glow pulse after reveal */
+.pack-card-reveal.is-mythic.flipped .card-container {
+    animation: mythicGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes mythicGlow {
+    from {
+        filter: drop-shadow(0 0 4px var(--rarity-mythic));
+    }
+
+    to {
+        filter: drop-shadow(0 0 12px var(--rarity-mythic));
+    }
+}
+
+/* Rare card subtle glow */
+.pack-card-reveal.is-rare.flipped .card-container {
+    animation: rareGlow 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes rareGlow {
+    from {
+        filter: drop-shadow(0 0 2px var(--rarity-rare));
+    }
+
+    to {
+        filter: drop-shadow(0 0 8px var(--rarity-rare));
+    }
+}
+
 .pack-reveal.opening .pack-card-reveal:not(.flipped) {
     animation: none;
 }

@@ -3,6 +3,7 @@ import type { ScryfallSet, ScryfallCard, BoosterType, DraftSettings } from './ty
 import { SetSelector } from './components/SetSelector';
 import { DraftPick } from './components/DraftPick';
 import { SealedOpener } from './components/SealedOpener';
+import { DraftComplete } from './components/DraftComplete';
 import { Lobby } from './components/Multiplayer/Lobby';
 import { MultiplayerDraft } from './components/Multiplayer/MultiplayerDraft';
 import { generateDraftBoosters } from './services/boosterGenerator';
@@ -16,6 +17,8 @@ function App() {
   const [screen, setScreen] = useState<AppScreen>('home');
   const [draftSettings, setDraftSettings] = useState<DraftSettings | null>(null);
   const [multiplayerRoomId, setMultiplayerRoomId] = useState('');
+  const [showDraftComplete, setShowDraftComplete] = useState(false);
+  const [finalPicks, setFinalPicks] = useState<ScryfallCard[]>([]);
 
   function handleSetSelect(_set: ScryfallSet, _boosterType: BoosterType, settings: DraftSettings) {
     setDraftSettings(settings);
@@ -67,10 +70,15 @@ function App() {
   }
 
   function handleDraftComplete(picks: ScryfallCard[]) {
-    // Draft complete - no deck builder available per request
-    alert(`Draft complete! You picked ${picks.length} cards. Returning to home.`);
+    setFinalPicks(picks);
+    setShowDraftComplete(true);
+  }
+
+  function handleCloseDraftComplete() {
+    setShowDraftComplete(false);
     setScreen('home');
     setDraftSettings(null);
+    setFinalPicks([]);
   }
 
 
@@ -78,6 +86,8 @@ function App() {
   function handleBackToHome() {
     setScreen('home');
     setDraftSettings(null);
+    setShowDraftComplete(false);
+    setFinalPicks([]);
   }
 
   return (
@@ -147,6 +157,22 @@ function App() {
           </div>
         )}
 
+        {showDraftComplete && draftSettings && (
+          <DraftComplete
+            picks={finalPicks}
+            setName={draftSettings.setName}
+            onNewDraft={handleCloseDraftComplete}
+            onExport={() => {
+              // Simple export to clipboard
+              const lines = ['Deck'];
+              finalPicks.forEach(card => {
+                lines.push(`1 ${card.name} (${card.set.toUpperCase()}) ${card.collector_number}`);
+              });
+              navigator.clipboard.writeText(lines.join('\n'));
+              alert('Deck copied to clipboard!');
+            }}
+          />
+        )}
 
       </main>
     </div>

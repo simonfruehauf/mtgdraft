@@ -311,10 +311,12 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                         <div className={`pack-reveal ${isOpening ? 'opening' : ''}`}>
                             {currentPack.map((card, i) => {
                                 const isRevealed = !isOpening || revealedCards.has(i);
+                                const rarityClass = card.rarity === 'mythic' ? 'is-mythic' :
+                                    card.rarity === 'rare' ? 'is-rare' : '';
                                 return (
                                     <div
                                         key={`${card.id}-${i}`}
-                                        className={`pack-card-reveal flip-card ${isRevealed ? 'flipped' : ''}`}
+                                        className={`pack-card-reveal flip-card ${isRevealed ? 'flipped' : ''} ${rarityClass}`}
                                         onMouseEnter={() => isRevealed && setHoveredCard(card)}
                                         onMouseLeave={() => setHoveredCard(null)}
                                     >

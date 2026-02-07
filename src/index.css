@@ -232,28 +232,36 @@ h4 {
   box-shadow: var(--shadow-sm);
 }
 
-/* Foil shimmer */
+/* Foil shimmer - holographic effect */
 .card-container.foil .card-image::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg,
-      transparent 30%,
-      rgba(255, 255, 255, 0.08) 50%,
-      transparent 70%);
+      transparent 20%,
+      rgba(255, 215, 0, 0.1) 30%,
+      rgba(255, 107, 53, 0.1) 40%,
+      rgba(155, 89, 182, 0.1) 50%,
+      rgba(52, 152, 219, 0.1) 60%,
+      rgba(46, 204, 113, 0.1) 70%,
+      transparent 80%);
+  background-size: 200% 200%;
   pointer-events: none;
   animation: foil-shimmer 4s ease-in-out infinite;
+  border-radius: var(--radius);
 }
 
 @keyframes foil-shimmer {
 
   0%,
   100% {
-    transform: translateX(-100%);
+    background-position: 0% 0%;
+    opacity: 0.5;
   }
 
   50% {
-    transform: translateX(100%);
+    background-position: 100% 100%;
+    opacity: 0.8;
   }
 }
 

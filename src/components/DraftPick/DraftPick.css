@@ -73,6 +73,42 @@
     transform: translateY(-4px);
 }
 
+/* Keyboard hotkey indicators */
+.card-hotkey {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: 10;
+}
+
+.pack-card {
+    position: relative;
+}
+
+.pack-card:hover .card-hotkey {
+    opacity: 1;
+}
+
+.pack-card.selected .card-hotkey {
+    opacity: 1;
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+}
+
 /* Sidebar */
 .draft-sidebar {
     background: var(--bg-raised);
