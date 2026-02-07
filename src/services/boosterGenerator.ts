@@ -12,8 +12,9 @@ export function buildCardPool(cards: ScryfallCard[]): CardPool {
         rares: [],
         mythics: [],
         basicLands: [],
-        variants: [], // Setup variants pool
-        all: cards // We keep all cards here for fallback, but filtered lists are cleaner
+        variants: [],
+        foilOnly: [], // Cards that only exist in foil (different collector numbers)
+        all: cards
     };
 
     for (const card of cards) {
@@ -73,8 +74,19 @@ export function buildCardPool(cards: ScryfallCard[]): CardPool {
         }
     }
 
-    // Safety: ensure variants is initialized if empty
+    // Safety: ensure optional pools are initialized
     if (!pool.variants) pool.variants = [];
+    if (!pool.foilOnly) pool.foilOnly = [];
+
+    // Second pass: identify foil-only cards (have 'foil' but not 'nonfoil' in finishes)
+    // These are cards with unique collector numbers for foil versions
+    for (const card of cards) {
+        if (card.finishes &&
+            card.finishes.includes('foil') &&
+            !card.finishes.includes('nonfoil')) {
+            pool.foilOnly.push(card);
+        }
+    }
 
     return pool;
 }
@@ -84,6 +96,33 @@ export function buildCardPool(cards: ScryfallCard[]): CardPool {
  */
 function pickRandom<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * arr.length)];
+}
+
+/**
+ * Check if a card can be foil
+ */
+function canBeFoil(card: ScryfallCard): boolean {
+    return card.finishes && card.finishes.includes('foil');
+}
+
+/**
+ * Pick a foil card, preferring foil-only cards (with unique collector numbers)
+ * Falls back to any foilable card if no foil-only cards exist
+ */
+function pickFoilCard(pool: CardPool): ScryfallCard | null {
+    // First priority: foil-only cards (these have unique collector numbers)
+    if (pool.foilOnly && pool.foilOnly.length > 0) {
+        return { ...pickRandom(pool.foilOnly), _isFoil: true };
+    }
+
+    // Second priority: any card that can be foil from all pools
+    const foilable = pool.all.filter(canBeFoil);
+    if (foilable.length > 0) {
+        return { ...pickRandom(foilable), _isFoil: true };
+    }
+
+    // Fallback: return null (caller should handle this)
+    return null;
 }
 
 /**
@@ -296,11 +335,14 @@ async function generatePlayBooster(
     // Slot 12: Non-foil wildcard
     cards.push(pickWildcard(pool));
 
-    // Slot 13: Foil wildcard (we'll mark it in the UI)
-    const wildcard = pickWildcard(pool);
-    // Be careful not to mark original object if it's reused
-    const foilCard = { ...wildcard, _isFoil: true } as ScryfallCard & { _isFoil: boolean };
-    cards.push(foilCard);
+    // Slot 13: Foil wildcard - prefer foil-only cards (unique collector numbers)
+    const foilCard = pickFoilCard(pool);
+    if (foilCard) {
+        cards.push(foilCard);
+    } else {
+        // Fallback: just add a non-foil wildcard
+        cards.push(pickWildcard(pool));
+    }
 
     // Slot 14: Basic land
     if (pool.basicLands.length > 0) {
@@ -371,8 +413,13 @@ function generateSetBooster(pool: CardPool): ScryfallCard[] {
     if (Math.random() < 0.5) {
         cards.push(pickRareOrMythic(pool));
     } else {
-        const foilCard = { ...pickWildcard(pool), _isFoil: true } as ScryfallCard & { _isFoil: boolean };
-        cards.push(foilCard);
+        // Foil slot - prefer foil-only cards (unique collector numbers)
+        const foilCard = pickFoilCard(pool);
+        if (foilCard) {
+            cards.push(foilCard);
+        } else {
+            cards.push(pickWildcard(pool));
+        }
     }
 
     // Slot 11: Basic Land

@@ -7,59 +7,110 @@ import './SealedOpener.css';
 
 interface SealedOpenerProps {
     settings: DraftSettings;
-    onComplete: (picks: ScryfallCard[]) => void;
     onBack: () => void;
 }
 
-export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps) {
+export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [allCards, setAllCards] = useState<ScryfallCard[]>([]);
+
     const [currentPackIndex, setCurrentPackIndex] = useState(0);
     const [packsOpened, setPacksOpened] = useState<ScryfallCard[][]>([]);
     const [isOpening, setIsOpening] = useState(false);
     const [showAllCards, setShowAllCards] = useState(false);
     const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
+    const [showExport, setShowExport] = useState(false);
+    const [exportFormat, setExportFormat] = useState<'mtga' | 'scryfall'>('mtga');
+    // Track which cards in the current pack have been revealed (for flip animation)
+    const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
 
     useEffect(() => {
-        generateAllPacks();
-    }, []);
+        let ignore = false;
 
-    async function generateAllPacks() {
-        try {
+        async function initPacks() {
             setLoading(true);
-            const packs: ScryfallCard[][] = [];
+            try {
+                // Optimization: Fetch cards once
+                const poolCards = await fetchSetCards(settings.setCode);
 
-            // Optimization: Fetch cards once
-            const poolCards = await fetchSetCards(settings.setCode);
+                const packs: ScryfallCard[][] = [];
+                for (let i = 0; i < settings.numberOfPacks; i++) {
+                    const booster = await generateBooster(
+                        settings.setCode,
+                        settings.boosterType,
+                        undefined,
+                        poolCards
+                    );
+                    packs.push(booster.cards);
+                }
 
-            for (let i = 0; i < settings.numberOfPacks; i++) {
-                const booster = await generateBooster(
-                    settings.setCode,
-                    settings.boosterType,
-                    undefined, // releaseDate
-                    poolCards // pre-fetched cards
-                );
-                packs.push(booster.cards);
+                if (!ignore) {
+                    setPacksOpened(packs);
+                    // Trigger animation for first pack
+                    // We set currentPackIndex to -1 explicitly to trigger the effect
+                    setCurrentPackIndex(-1);
+                    setLoading(false);
+                }
+            } catch (err) {
+                if (!ignore) {
+                    console.error(err);
+                    setError(err instanceof Error ? err.message : 'Failed to generate packs. Please try again.');
+                    setLoading(false);
+                }
             }
-
-            setPacksOpened(packs);
-            setAllCards(packs.flat());
-        } catch (err) {
-            console.error(err);
-            setError(err instanceof Error ? err.message : 'Failed to generate packs. Please try again.');
-        } finally {
-            setLoading(false);
         }
+
+        initPacks();
+
+        return () => {
+            ignore = true;
+        };
+    }, []); // Only run once on mount
+
+    // Effect to trigger opening of first pack safely
+    useEffect(() => {
+        if (packsOpened.length > 0 && currentPackIndex === -1) {
+            const timer = setTimeout(() => {
+                openNextPack();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [packsOpened, currentPackIndex]);
+
+    // Manual retry function
+    function handleRetry() {
+        // Force re-mount or reload logic would be ideal, but for now we can just calling the logic
+        // We'll reset error and let the effect run? No, effect only runs on mount.
+        // We can duplicate the logic or extract it. Let's extract checking the code above.
+        // For simplicity in this patch, I'll essentially reload the component key or just duplicate for retry.
+        // Actually, let's just make initPacks a named function outside useEffect?
+        // But it relies on 'ignore' closure.
+        // Let's reload the page or navigate back/forth? 
+        // Or better: define generatePacks separate.
+        window.location.reload();
     }
 
     function openNextPack() {
         if (currentPackIndex < packsOpened.length) {
             setIsOpening(true);
+            setRevealedCards(new Set()); // Reset revealed cards for new pack
+
+            // Move to next pack immediately so we render the NEW cards (face down)
+            setCurrentPackIndex(prev => prev + 1);
+
+            const packSize = 14;
+
+            // Stagger reveal each card
+            for (let i = 0; i < packSize; i++) {
+                setTimeout(() => {
+                    setRevealedCards(prev => new Set([...prev, i]));
+                }, 300 + i * 300); // 300ms initial delay + 300ms between each card flip (slower)
+            }
+
+            // Animation complete
             setTimeout(() => {
-                setCurrentPackIndex(prev => prev + 1);
                 setIsOpening(false);
-            }, 500);
+            }, 300 + packSize * 300 + 500);
         }
     }
 
@@ -67,9 +118,7 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
         setCurrentPackIndex(packsOpened.length);
     }
 
-    function handleDone() {
-        onComplete(allCards);
-    }
+
 
     if (loading) {
         return (
@@ -84,13 +133,13 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
         return (
             <div className="error-container">
                 <p className="error-text">{error}</p>
-                <button className="btn btn-primary" onClick={generateAllPacks}>Retry</button>
+                <button className="btn btn-primary" onClick={handleRetry}>Retry</button>
                 <button className="btn btn-secondary" onClick={onBack}>Back</button>
             </div>
         );
     }
 
-    const openedCards = packsOpened.slice(0, currentPackIndex).flat();
+    const openedCards = packsOpened.slice(0, Math.max(0, currentPackIndex)).flat();
     const allOpened = currentPackIndex >= packsOpened.length;
     const displayPackIndex = allOpened ? packsOpened.length - 1 : currentPackIndex;
     const currentPack = displayPackIndex < packsOpened.length ? packsOpened[displayPackIndex] : null;
@@ -164,24 +213,52 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
         };
     })();
 
-    function handleExportPool() {
-        const lines: string[] = [];
-        const cardCounts = new Map<string, number>();
-
+    // MTGA format
+    function generateMTGAExport(): string {
+        const lines: string[] = ['Deck'];
+        const cardCounts = new Map<string, { card: ScryfallCard, count: number }>();
         openedCards.forEach(card => {
-            const name = card.name; // Use simple name for export
-            cardCounts.set(name, (cardCounts.get(name) || 0) + 1);
+            const key = `${card.name}|${card.set}|${card.collector_number}`;
+            const existing = cardCounts.get(key);
+            if (existing) existing.count++;
+            else cardCounts.set(key, { card, count: 1 });
         });
+        for (const { card, count } of cardCounts.values()) {
+            lines.push(`${count} ${card.name} (${card.set.toUpperCase()}) ${card.collector_number}`);
+        }
+        return lines.join('\n');
+    }
 
-        // Add Deck header for MTGA import
-        lines.push('Deck');
-        cardCounts.forEach((count, name) => {
-            lines.push(`${count} ${name}`);
+    // Scryfall format with foil/variants
+    function generateScryfallExport(): string {
+        const lines: string[] = ['// Pool - ' + settings.setName, ''];
+        const cardCounts = new Map<string, { card: ScryfallCard, count: number }>();
+        openedCards.forEach(card => {
+            const key = card.id;
+            const existing = cardCounts.get(key);
+            if (existing) existing.count++;
+            else cardCounts.set(key, { card, count: 1 });
         });
+        for (const { card, count } of cardCounts.values()) {
+            const foilMark = card._isFoil ? ' *F*' : '';
+            lines.push(`${count} ${card.name} (${card.set.toUpperCase()}) ${card.collector_number}${foilMark}`);
+        }
+        return lines.join('\n');
+    }
 
-        const text = lines.join('\n');
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Pool exported to clipboard in MTG Arena format!');
+    // TTS export removed per request
+
+    function getExportContent(): string {
+        switch (exportFormat) {
+            case 'mtga': return generateMTGAExport();
+            case 'scryfall': return generateScryfallExport();
+        }
+        return '';
+    }
+
+    function copyToClipboard() {
+        navigator.clipboard.writeText(getExportContent()).then(() => {
+            alert('Pool copied to clipboard!');
         });
     }
 
@@ -198,7 +275,7 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
                     <div className="sealed-progress">
                         <h2>Box Brawl - {settings.setName}</h2>
                         <p className="pack-progress">
-                            {currentPackIndex} / {settings.numberOfPacks} packs opened
+                            {Math.max(0, currentPackIndex)} / {settings.numberOfPacks} packs opened
                         </p>
                     </div>
                     <div className="sealed-actions">
@@ -220,14 +297,9 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
                             </>
                         )}
                         {allOpened && (
-                            <>
-                                <button className="btn btn-secondary" onClick={handleExportPool}>
-                                    📋 Export Pool
-                                </button>
-                                <button className="btn btn-primary" onClick={handleDone}>
-                                    Build Deck ({allCards.length} cards)
-                                </button>
-                            </>
+                            <button className="btn btn-secondary" onClick={() => setShowExport(true)}>
+                                Export Pool
+                            </button>
                         )}
                     </div>
                 </div>
@@ -237,17 +309,26 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
                     <div className="current-pack-section">
                         <h3>{allOpened ? 'Last Pack' : `Pack ${currentPackIndex + 1}`}</h3>
                         <div className={`pack-reveal ${isOpening ? 'opening' : ''}`}>
-                            {currentPack.map((card, i) => (
-                                <div
-                                    key={`${card.id}-${i}`}
-                                    className="pack-card-reveal"
-                                    style={{ animationDelay: `${i * 0.05}s` }}
-                                    onMouseEnter={() => setHoveredCard(card)}
-                                    onMouseLeave={() => setHoveredCard(null)}
-                                >
-                                    <Card card={card} />
-                                </div>
-                            ))}
+                            {currentPack.map((card, i) => {
+                                const isRevealed = !isOpening || revealedCards.has(i);
+                                return (
+                                    <div
+                                        key={`${card.id}-${i}`}
+                                        className={`pack-card-reveal flip-card ${isRevealed ? 'flipped' : ''}`}
+                                        onMouseEnter={() => isRevealed && setHoveredCard(card)}
+                                        onMouseLeave={() => setHoveredCard(null)}
+                                    >
+                                        <div className="flip-card-inner">
+                                            <div className="flip-card-back">
+                                                <div className="card-back-design" />
+                                            </div>
+                                            <div className="flip-card-front">
+                                                <Card card={card} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
@@ -299,16 +380,7 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
                 )}
 
 
-                {/* Unopened packs visualization */}
-                {!allOpened && (
-                    <div className="unopened-packs">
-                        {Array.from({ length: settings.numberOfPacks - currentPackIndex - 1 }).map((_, i) => (
-                            <div key={i} className="unopened-pack">
-                                📦
-                            </div>
-                        ))}
-                    </div>
-                )}
+
             </div>
 
             {/* Sidebar for Preview */}
@@ -325,6 +397,49 @@ export function SealedOpener({ settings, onComplete, onBack }: SealedOpenerProps
                     )}
                 </div>
             </div>
+
+            {/* Export Modal */}
+            {showExport && (
+                <div className="export-modal-overlay" onClick={() => setShowExport(false)}>
+                    <div className="export-modal" onClick={e => e.stopPropagation()}>
+                        <h3>Export Pool</h3>
+
+                        <div className="export-tabs">
+                            <button
+                                className={`export-tab ${exportFormat === 'mtga' ? 'active' : ''}`}
+                                onClick={() => setExportFormat('mtga')}
+                            >
+                                MTG Arena
+                            </button>
+                            <button
+                                className={`export-tab ${exportFormat === 'scryfall' ? 'active' : ''}`}
+                                onClick={() => setExportFormat('scryfall')}
+                            >
+                                Scryfall
+                            </button>
+                        </div>
+
+                        <p className="export-hint">
+                            {exportFormat === 'mtga' && 'Standard Arena format for deck import.'}
+                            {exportFormat === 'scryfall' && 'Includes foil status and variant info.'}
+                        </p>
+
+                        <textarea
+                            readOnly
+                            value={getExportContent()}
+                            className="export-textarea"
+                        />
+                        <div className="export-actions">
+                            <button className="btn btn-primary" onClick={copyToClipboard}>
+                                Copy to Clipboard
+                            </button>
+                            <button className="btn btn-secondary" onClick={() => setShowExport(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

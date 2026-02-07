@@ -1,35 +1,42 @@
+.card-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+}
+
 .card-container.clickable {
     cursor: pointer;
 }
 
 .card-container.card-large {
     width: 244px;
-    height: 340px;
 }
 
-.card-container.has-badges {
-    /* Ensure badges are visible */
+.card-container.card-small {
+    width: var(--card-width-sm);
 }
 
-/* Badge container */
+.card-image {
+    width: 100%;
+    border-radius: var(--radius);
+}
+
+/* Badge container - below card */
 .card-badges {
-    position: absolute;
-    top: 6px;
-    left: 6px;
-    right: 6px;
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
-    pointer-events: none;
+    gap: 2px;
+    justify-content: center;
 }
 
 /* Base badge style */
 .card-badge {
-    padding: 2px 5px;
-    font-size: 0.5625rem;
-    font-weight: 700;
-    border-radius: 3px;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+
+    padding: 1px 4px;
+    font-size: 0.5rem;
+    font-weight: 600;
+    border-radius: 2px;
     letter-spacing: 0.02em;
     white-space: nowrap;
 }
@@ -51,58 +58,60 @@
     }
 }
 
-/* The List badge - purple/mysterious */
+/* The List badge - purple */
 .badge-list {
-    background: linear-gradient(135deg, #6b21a8, #9333ea);
+    background: #7c3aed;
     color: white;
-    box-shadow: 0 0 6px rgba(147, 51, 234, 0.5);
 }
 
-/* Showcase badge - teal/artistic */
+/* Showcase badge - teal */
 .badge-showcase {
-    background: linear-gradient(135deg, #0d9488, #14b8a6);
+    background: #0d9488;
     color: white;
 }
 
-/* Extended art badge - amber/gold */
+/* Extended art badge - amber */
 .badge-extended {
-    background: linear-gradient(135deg, #b45309, #d97706);
+    background: #d97706;
     color: white;
 }
 
-/* Borderless badge - silver/sleek */
+/* Borderless badge - gray */
 .badge-borderless {
-    background: linear-gradient(135deg, #4b5563, #6b7280);
+    background: #4b5563;
     color: white;
 }
 
-/* Full art badge - blue/artistic */
+/* Full art badge - blue */
 .badge-fullart {
-    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    background: #2563eb;
     color: white;
 }
 
-/* Promo badge - red/exclusive */
+/* Promo badge - red */
 .badge-promo {
-    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    background: #dc2626;
     color: white;
 }
 
 /* Generic special badge */
 .badge-special {
-    background: linear-gradient(135deg, #4a5568, #718096);
+    background: #6b7280;
     color: white;
 }
 
-/* Small card adjustments for badges */
+/* Small card adjustments */
 .card-container.card-small .card-badges {
-    top: 3px;
-    left: 3px;
-    right: 3px;
-    gap: 2px;
+    gap: 1px;
 }
 
 .card-container.card-small .card-badge {
-    padding: 1px 3px;
-    font-size: 0.45rem;
+    padding: 0 2px;
+    font-size: 0.4rem;
+}
+
+/* Large card adjustments */
+.card-container.card-large .card-badge {
+    padding: 2px 6px;
+    font-size: 0.625rem;
 }

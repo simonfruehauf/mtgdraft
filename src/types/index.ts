@@ -81,6 +81,7 @@ export interface CardPool {
   basicLands: ScryfallCard[];
   all: ScryfallCard[];
   variants?: ScryfallCard[]; // Alt-art/Showcase cards (Booster Fun)
+  foilOnly?: ScryfallCard[]; // Cards that only exist in foil (different collector numbers)
 }
 
 export interface Booster {
