@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ScryfallCard, DraftSettings, BotPlayer } from '../../types';
 import { generateDraftBoosters } from '../../services/boosterGenerator';
 import { Card } from '../Card';
-import { shouldRotateCard } from '../../services/scryfall';
+import { shouldRotateCard, fetchCardText } from '../../services/scryfall';
 import './DraftPick.css';
 
 interface DraftPickProps {
@@ -129,16 +129,29 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
         }
     }, [autoPickTriggered, currentPack]);
 
-    // Hover state for zooming
+    // Hover state for zooming - persists until a new card is hovered
     const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
+    const [cardText, setCardText] = useState<string>('');
 
     function handleCardHover(card: ScryfallCard) {
         setHoveredCard(card);
     }
 
-    function handleCardLeave() {
-        setHoveredCard(null);
-    }
+    // Effect to fetch card text when selection or hover changes
+    useEffect(() => {
+        const card = hoveredCard || selectedCard;
+        if (!card) {
+            setCardText('');
+            return;
+        }
+
+        let ignore = false;
+        fetchCardText(card.id).then(text => {
+            if (!ignore) setCardText(text);
+        });
+
+        return () => { ignore = true; };
+    }, [hoveredCard, selectedCard]);
 
     // Keyboard navigation
     const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -377,7 +390,6 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                             key={card.id}
                             className={`pack-card ${selectedCard?.id === card.id ? 'selected' : ''}`}
                             onMouseEnter={() => handleCardHover(card)}
-                            onMouseLeave={handleCardLeave}
                             onClick={() => handleCardClick(card)}
                             onDoubleClick={() => handleCardDoubleClick(card)}
                         >
@@ -407,6 +419,13 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                     )}
                 </div>
 
+                {/* Card Text Display */}
+                {cardText && (
+                    <div className="card-text-area">
+                        <pre className="card-text-content">{cardText}</pre>
+                    </div>
+                )}
+
                 <div className="pool-preview">
                     <h3>Your Picks ({pickedCards.length})</h3>
 
@@ -426,7 +445,6 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                                             key={`${card.id}-${i}`}
                                             className="pool-card-wrapper"
                                             onMouseEnter={() => handleCardHover(card)}
-                                            onMouseLeave={handleCardLeave}
                                         >
                                             <Card card={card} size="small" />
                                         </div>

@@ -122,7 +122,6 @@
 /* Card preview */
 .card-preview-area {
     padding: 1.25rem;
-    height: 360px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -216,4 +215,23 @@
     .draft-sidebar {
         display: none;
     }
+}
+
+/* Card Text Display */
+.card-text-area {
+    padding: 1rem;
+    background: var(--bg-surface);
+    border-bottom: 2px solid var(--border);
+    max-height: 200px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.card-text-content {
+    margin: 0;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: var(--text-primary);
 }

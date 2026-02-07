@@ -19,6 +19,7 @@ function App() {
   const [multiplayerRoomId, setMultiplayerRoomId] = useState('');
   const [showDraftComplete, setShowDraftComplete] = useState(false);
   const [finalPicks, setFinalPicks] = useState<ScryfallCard[]>([]);
+  const [draftKey, setDraftKey] = useState(0);
 
   function handleSetSelect(_set: ScryfallSet, _boosterType: BoosterType, settings: DraftSettings) {
     setDraftSettings(settings);
@@ -79,6 +80,14 @@ function App() {
     setScreen('home');
     setDraftSettings(null);
     setFinalPicks([]);
+    setDraftKey(0);
+  }
+
+  function handleRedoDraft() {
+    setShowDraftComplete(false);
+    setFinalPicks([]);
+    setDraftKey(prev => prev + 1);
+    // Screen stays 'draft', settings stay same
   }
 
 
@@ -123,6 +132,7 @@ function App() {
         {screen === 'draft' && draftSettings && (
           <div className="container">
             <DraftPick
+              key={draftKey}
               settings={draftSettings}
               onComplete={handleDraftComplete}
               onBack={handleBackToHome}
@@ -162,6 +172,7 @@ function App() {
             picks={finalPicks}
             setName={draftSettings.setName}
             onNewDraft={handleCloseDraftComplete}
+            onRedoDraft={handleRedoDraft}
             onExport={() => {
               // Simple export to clipboard
               const lines = ['Deck'];

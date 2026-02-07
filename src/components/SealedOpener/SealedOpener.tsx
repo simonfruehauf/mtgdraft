@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { ScryfallCard, DraftSettings } from '../../types';
 import { generateBooster } from '../../services/boosterGenerator';
-import { fetchSetCards, shouldRotateCard } from '../../services/scryfall';
+import { fetchSetCards, shouldRotateCard, fetchCardText } from '../../services/scryfall';
 import { Card } from '../Card';
 import './SealedOpener.css';
 
@@ -19,10 +19,31 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     const [isOpening, setIsOpening] = useState(false);
     const [showAllCards, setShowAllCards] = useState(false);
     const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
+    const [cardText, setCardText] = useState<string>('');
     const [showExport, setShowExport] = useState(false);
     const [exportFormat, setExportFormat] = useState<'mtga' | 'scryfall'>('mtga');
     // Track which cards in the current pack have been revealed (for flip animation)
     const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+
+    // Persistent hover handler - card stays displayed until a new one is hovered
+    function handleCardHover(card: ScryfallCard) {
+        setHoveredCard(card);
+    }
+
+    // Effect to fetch card text when hover changes
+    useEffect(() => {
+        if (!hoveredCard) {
+            setCardText('');
+            return;
+        }
+
+        let ignore = false;
+        fetchCardText(hoveredCard.id).then(text => {
+            if (!ignore) setCardText(text);
+        });
+
+        return () => { ignore = true; };
+    }, [hoveredCard]);
 
     useEffect(() => {
         let ignore = false;
@@ -94,6 +115,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
         if (currentPackIndex < packsOpened.length) {
             setIsOpening(true);
             setRevealedCards(new Set()); // Reset revealed cards for new pack
+            setHoveredCard(null);
 
             // Move to next pack immediately so we render the NEW cards (face down)
             setCurrentPackIndex(prev => prev + 1);
@@ -317,8 +339,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                                     <div
                                         key={`${card.id}-${i}`}
                                         className={`pack-card-reveal flip-card ${isRevealed ? 'flipped' : ''} ${rarityClass}`}
-                                        onMouseEnter={() => isRevealed && setHoveredCard(card)}
-                                        onMouseLeave={() => setHoveredCard(null)}
+                                        onMouseEnter={() => isRevealed && handleCardHover(card)}
                                     >
                                         <div className="flip-card-inner">
                                             <div className="flip-card-back">
@@ -352,8 +373,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                                                 <div
                                                     key={`${card.id}-${i}`}
                                                     className="pool-card-stack"
-                                                    onMouseEnter={() => setHoveredCard(card)}
-                                                    onMouseLeave={() => setHoveredCard(null)}
+                                                    onMouseEnter={() => handleCardHover(card)}
                                                 >
                                                     <Card card={card} size="small" />
                                                     {count > 1 && (
@@ -398,6 +418,13 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                         </div>
                     )}
                 </div>
+
+                {/* Card Text Display */}
+                {cardText && (
+                    <div className="card-text-area">
+                        <pre className="card-text-content">{cardText}</pre>
+                    </div>
+                )}
             </div>
 
             {/* Export Modal */}

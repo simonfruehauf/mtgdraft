@@ -5,6 +5,9 @@ const RATE_LIMIT_MS = 100; // 10 requests per second max
 
 let lastRequestTime = 0;
 
+// Cache for card text to avoid repeated API calls
+const cardTextCache = new Map<string, string>();
+
 /**
  * Rate-limited fetch to respect Scryfall's API limits
  */
@@ -274,3 +277,30 @@ export function shouldRotateCard(card: ScryfallCard): boolean {
     return false;
 }
 
+/**
+ * Fetch the oracle text for a card from Scryfall's text format endpoint.
+ * Results are cached in memory to avoid repeated API calls.
+ */
+export async function fetchCardText(cardId: string): Promise<string> {
+    // Check cache first
+    if (cardTextCache.has(cardId)) {
+        return cardTextCache.get(cardId)!;
+    }
+
+    try {
+        const response = await rateLimitedFetch(
+            `${SCRYFALL_API_BASE}/cards/${cardId}?format=text`
+        );
+
+        if (!response.ok) {
+            return 'Unable to load card text.';
+        }
+
+        const text = await response.text();
+        cardTextCache.set(cardId, text);
+        return text;
+    } catch (error) {
+        console.error('Failed to fetch card text:', error);
+        return 'Unable to load card text.';
+    }
+}

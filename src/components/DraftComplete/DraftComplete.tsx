@@ -6,10 +6,11 @@ interface DraftCompleteProps {
     picks: ScryfallCard[];
     setName: string;
     onNewDraft: () => void;
+    onRedoDraft: () => void;
     onExport: () => void;
 }
 
-export function DraftComplete({ picks, setName, onNewDraft, onExport }: DraftCompleteProps) {
+export function DraftComplete({ picks, setName, onNewDraft, onRedoDraft, onExport }: DraftCompleteProps) {
     // Group picks by rarity
     const grouped = {
         mythic: picks.filter(c => c.rarity === 'mythic'),
@@ -89,6 +90,9 @@ export function DraftComplete({ picks, setName, onNewDraft, onExport }: DraftCom
                 <div className="draft-complete-actions">
                     <button className="btn btn-secondary" onClick={onExport}>
                         Export Pool
+                    </button>
+                    <button className="btn btn-secondary" onClick={onRedoDraft}>
+                        Redo Draft
                     </button>
                     <button className="btn btn-primary btn-lg" onClick={onNewDraft}>
                         New Draft

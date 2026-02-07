@@ -346,7 +346,6 @@
 
 .card-preview-area {
     padding: 1.25rem;
-    flex: 1;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -454,4 +453,23 @@
     .sealed-sidebar {
         display: none;
     }
+}
+
+/* Card Text Display */
+.card-text-area {
+    padding: 1rem;
+    background: var(--bg-surface);
+    border-bottom: 2px solid var(--border);
+    max-height: 300px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.card-text-content {
+    margin: 0;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: var(--text-primary);
 }
