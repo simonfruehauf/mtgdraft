@@ -217,9 +217,9 @@ function safePick(pool: CardPool, count: number, preferredRarity: 'common' | 'un
 
 /**
  * Pick rare or mythic based on probability
- * Default ratio is ~7:1 (rare:mythic) = 87.5% rare, 12.5% mythic
+ * @param usePlayBoosterRatio - Play Boosters use 1:7 ratio (14.28% mythic), Draft Boosters use 1:8 (12.5%)
  */
-function pickRareOrMythic(pool: CardPool): ScryfallCard {
+function pickRareOrMythic(pool: CardPool, usePlayBoosterRatio: boolean = false): ScryfallCard {
     // If no mythics exist, always pick rare
     if (pool.mythics.length === 0) {
         if (pool.rares.length === 0) {
@@ -234,8 +234,10 @@ function pickRareOrMythic(pool: CardPool): ScryfallCard {
         return pickRandom(pool.mythics);
     }
 
-    // 7:1 ratio = 1/8 chance of mythic
-    return Math.random() < 0.125
+    // Play Boosters: 1:7 ratio = 1/7 chance of mythic (~14.28%)
+    // Draft Boosters: 1:8 ratio = 1/8 chance of mythic (12.5%)
+    const mythicChance = usePlayBoosterRatio ? (1 / 7) : 0.125;
+    return Math.random() < mythicChance
         ? pickRandom(pool.mythics)
         : pickRandom(pool.rares);
 }
@@ -329,27 +331,27 @@ async function generatePlayBooster(
     // Slots 8-10: Uncommons
     cards.push(...safePick(pool, 3, 'uncommon'));
 
-    // Slot 11: Rare/Mythic
-    cards.push(pickRareOrMythic(pool));
+    // Slot 11: Rare/Mythic (Play Booster uses 1:7 ratio)
+    cards.push(pickRareOrMythic(pool, true));
 
-    // Slot 12: Non-foil wildcard
+    // Slot 12: Basic land
+    if (pool.basicLands.length > 0) {
+        cards.push(pickRandom(pool.basicLands));
+    } else {
+        // Fallback to a common if no lands (e.g. Master sets)
+        cards.push(...safePick(pool, 1, 'common'));
+    }
+
+    // Slot 13: Non-foil wildcard
     cards.push(pickWildcard(pool));
 
-    // Slot 13: Foil wildcard - prefer foil-only cards (unique collector numbers)
+    // Slot 14: Foil wildcard - prefer foil-only cards (unique collector numbers)
     const foilCard = pickFoilCard(pool);
     if (foilCard) {
         cards.push(foilCard);
     } else {
         // Fallback: just add a non-foil wildcard
         cards.push(pickWildcard(pool));
-    }
-
-    // Slot 14: Basic land
-    if (pool.basicLands.length > 0) {
-        cards.push(pickRandom(pool.basicLands));
-    } else {
-        // Fallback to a common if no lands (e.g. Master sets)
-        cards.push(...safePick(pool, 1, 'common'));
     }
 
     return cards;
