@@ -116,6 +116,12 @@
 
 .pack-card-reveal {
     cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
+
+.pack-card-reveal:hover {
+    z-index: 100;
 }
 
 /* Mythic reveal burst animation */
@@ -347,10 +353,7 @@
     padding-top: 3rem;
 }
 
-.preview-card {
-    transition: transform var(--transition);
-    transform: scale(1.1);
-}
+
 
 .preview-card.rotated {
     transform: rotate(90deg) scale(0.85);

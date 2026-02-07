@@ -130,10 +130,6 @@
     background: var(--bg-base);
 }
 
-.preview-card {
-    transition: transform var(--transition);
-    transform: scale(1.05);
-}
 
 .preview-card.rotated {
     transform: rotate(90deg) scale(0.85);
