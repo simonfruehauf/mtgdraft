@@ -3,6 +3,7 @@ import type { ScryfallCard, DraftSettings, BotPlayer } from '../../types';
 import { generateDraftBoosters } from '../../services/boosterGenerator';
 import { Card } from '../Card';
 import { shouldRotateCard, fetchCardText } from '../../services/scryfall';
+import { formatOracleText } from '../../services/textFormatter';
 import './DraftPick.css';
 
 interface DraftPickProps {
@@ -422,7 +423,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                 {/* Card Text Display */}
                 {cardText && (
                     <div className="card-text-area">
-                        <pre className="card-text-content">{cardText}</pre>
+                        <div className="card-text-content">{formatOracleText(cardText)}</div>
                     </div>
                 )}
 

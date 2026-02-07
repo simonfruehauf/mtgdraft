@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { ScryfallCard, DraftSettings } from '../../types';
 import { generateBooster } from '../../services/boosterGenerator';
 import { fetchSetCards, shouldRotateCard, fetchCardText } from '../../services/scryfall';
+import { formatOracleText } from '../../services/textFormatter';
 import { Card } from '../Card';
 import './SealedOpener.css';
 
@@ -422,7 +423,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                 {/* Card Text Display */}
                 {cardText && (
                     <div className="card-text-area">
-                        <pre className="card-text-content">{cardText}</pre>
+                        <div className="card-text-content">{formatOracleText(cardText)}</div>
                     </div>
                 )}
             </div>

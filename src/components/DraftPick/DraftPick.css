@@ -125,10 +125,18 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    align-items: center;
+    justify-content: center;
     border-bottom: 1px solid var(--border);
     background: var(--bg-base);
 }
 
+.card-preview-area .card-container {
+    pointer-events: none;
+    cursor: default;
+    /* Ensure no transform happens even if parent has hover */
+    transform: none !important;
+}
 
 .preview-card.rotated {
     transform: rotate(90deg) scale(0.85);
@@ -229,9 +237,8 @@
 
 .card-text-content {
     margin: 0;
-    white-space: pre-wrap;
     font-family: inherit;
     font-size: 0.9em;
-    line-height: 1.5;
+    line-height: 1.6;
     color: var(--text-primary);
 }
