@@ -108,15 +108,18 @@ function canBeFoil(card: ScryfallCard): boolean {
 /**
  * Pick a foil card, preferring foil-only cards (with unique collector numbers)
  * Falls back to any foilable card if no foil-only cards exist
+ * Foil-only cards (special variants) only have ~15% chance to appear
  */
 function pickFoilCard(pool: CardPool): ScryfallCard | null {
-    // First priority: foil-only cards (these have unique collector numbers)
-    if (pool.foilOnly && pool.foilOnly.length > 0) {
+    // Any card that can be foil from all pools
+    const foilable = pool.all.filter(canBeFoil);
+
+    // 15% chance to get a foil-only special variant (showcase/borderless/etc)
+    if (pool.foilOnly && pool.foilOnly.length > 0 && Math.random() < 0.15) {
         return { ...pickRandom(pool.foilOnly), _isFoil: true };
     }
 
-    // Second priority: any card that can be foil from all pools
-    const foilable = pool.all.filter(canBeFoil);
+    // Otherwise, pick a regular card in foil
     if (foilable.length > 0) {
         return { ...pickRandom(foilable), _isFoil: true };
     }

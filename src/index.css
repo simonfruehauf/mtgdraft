@@ -584,6 +584,64 @@ h4 {
   font-size: 0.875rem;
 }
 
+/* Card Text Display - shared across components */
+.card-text-area {
+  padding: 1rem;
+  background: var(--bg-surface);
+  border-bottom: 2px solid var(--border);
+  max-height: 200px;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.card-text-content {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.9em;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Preview card rotation for sideways cards */
+.preview-card.rotated {
+  transform: rotate(90deg) scale(0.85);
+}
+
+.preview-placeholder {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Modal overlay with blur */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Enhanced button effects */
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  box-shadow: 0 0 20px var(--accent-muted);
+}
+
+/* Set card hover enhancement */
+.set-card {
+  transition: all var(--transition), box-shadow var(--transition);
+}
+
+.set-card:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
 /* Responsive breakpoints */
 @media (max-width: 900px) {
   .draft-layout {

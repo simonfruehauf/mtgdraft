@@ -4,6 +4,7 @@
     gap: 0.25rem;
     position: relative;
     transition: transform var(--transition), filter var(--transition);
+    user-select: none;
 }
 
 .card-container.clickable {

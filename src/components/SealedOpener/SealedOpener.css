@@ -458,21 +458,3 @@
         display: none;
     }
 }
-
-/* Card Text Display */
-.card-text-area {
-    padding: 1rem;
-    background: var(--bg-surface);
-    border-bottom: 2px solid var(--border);
-    max-height: 300px;
-    overflow-y: auto;
-    flex-shrink: 0;
-}
-
-.card-text-content {
-    margin: 0;
-    font-family: inherit;
-    font-size: 0.9em;
-    line-height: 1.6;
-    color: var(--text-primary);
-}

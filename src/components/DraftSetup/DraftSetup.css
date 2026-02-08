@@ -27,10 +27,10 @@
     align-items: center;
     gap: 1.5rem;
     padding: 1.5rem;
-    background: var(--bg-card);
-    border: 2px solid var(--accent-gold);
-    border-radius: var(--border-radius-lg);
-    box-shadow: var(--shadow-glow);
+    background: var(--bg-raised);
+    border: 2px solid var(--accent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .set-icon-large {
@@ -57,9 +57,9 @@
 
 .setup-option {
     padding: 1.25rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
 }
 
 .setup-option .form-label {
@@ -115,12 +115,6 @@
     gap: 0.5rem;
 }
 
-.timer-buttons {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-}
-
 .option-hint {
     margin-top: 0.5rem;
     font-size: 0.8125rem;
@@ -130,14 +124,14 @@
 /* Summary */
 .setup-summary {
     padding: 1.25rem;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
 }
 
 .setup-summary h4 {
     margin-bottom: 0.75rem;
-    color: var(--accent-gold);
+    color: var(--accent);
     font-size: 0.875rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;

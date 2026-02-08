@@ -138,15 +138,6 @@
     transform: none !important;
 }
 
-.preview-card.rotated {
-    transform: rotate(90deg) scale(0.85);
-}
-
-.preview-placeholder {
-    color: var(--text-muted);
-    font-size: 0.875rem;
-}
-
 /* Picks pool */
 .pool-preview {
     flex: 1;
@@ -223,22 +214,4 @@
     .draft-sidebar {
         display: none;
     }
-}
-
-/* Card Text Display */
-.card-text-area {
-    padding: 1rem;
-    background: var(--bg-surface);
-    border-bottom: 2px solid var(--border);
-    max-height: 200px;
-    overflow-y: auto;
-    flex-shrink: 0;
-}
-
-.card-text-content {
-    margin: 0;
-    font-family: inherit;
-    font-size: 0.9em;
-    line-height: 1.6;
-    color: var(--text-primary);
 }
