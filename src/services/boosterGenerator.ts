@@ -337,24 +337,24 @@ async function generatePlayBooster(
     // Slot 11: Rare/Mythic (Play Booster uses 1:7 ratio)
     cards.push(pickRareOrMythic(pool, true));
 
-    // Slot 12: Basic land
-    if (pool.basicLands.length > 0) {
-        cards.push(pickRandom(pool.basicLands));
-    } else {
-        // Fallback to a common if no lands (e.g. Master sets)
-        cards.push(...safePick(pool, 1, 'common'));
-    }
-
-    // Slot 13: Non-foil wildcard
+    // Slot 12: Non-foil wildcard
     cards.push(pickWildcard(pool));
 
-    // Slot 14: Foil wildcard - prefer foil-only cards (unique collector numbers)
+    // Slot 13: Foil wildcard - prefer foil-only cards (unique collector numbers)
     const foilCard = pickFoilCard(pool);
     if (foilCard) {
         cards.push(foilCard);
     } else {
         // Fallback: just add a non-foil wildcard
         cards.push(pickWildcard(pool));
+    }
+
+    // Slot 14: Basic land
+    if (pool.basicLands.length > 0) {
+        cards.push(pickRandom(pool.basicLands));
+    } else {
+        // Fallback to a common if no lands (e.g. Master sets)
+        cards.push(...safePick(pool, 1, 'common'));
     }
 
     return cards;

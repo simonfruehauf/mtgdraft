@@ -434,9 +434,19 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                 </div>
 
                 {/* Card Text Display */}
-                {cardText && (
+                {previewCard && (
                     <div className="card-text-area">
-                        <div className="card-text-content">{formatOracleText(cardText)}</div>
+                        <a
+                            href={`https://scryfall.com/card/${previewCard.set}/${previewCard.collector_number}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="card-name-link"
+                        >
+                            {previewCard.name}
+                        </a>
+                        {cardText && (
+                            <div className="card-text-content">{formatOracleText(cardText)}</div>
+                        )}
                     </div>
                 )}
             </div>

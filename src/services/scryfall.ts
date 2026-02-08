@@ -296,6 +296,7 @@ export function shouldRotateCard(card: ScryfallCard): boolean {
 /**
  * Fetch the oracle text for a card from Scryfall's text format endpoint.
  * Results are cached in memory to avoid repeated API calls.
+ * Returns the text with the first line (card name) removed.
  */
 export async function fetchCardText(cardId: string): Promise<string> {
     // Check cache first
@@ -312,9 +313,13 @@ export async function fetchCardText(cardId: string): Promise<string> {
             return 'Unable to load card text.';
         }
 
-        const text = await response.text();
-        cardTextCache.set(cardId, text);
-        return text;
+        const fullText = await response.text();
+        // Strip the first line (card name) since we display it separately
+        const lines = fullText.split('\n');
+        const textWithoutName = lines.slice(1).join('\n').trim();
+
+        cardTextCache.set(cardId, textWithoutName);
+        return textWithoutName;
     } catch (error) {
         console.error('Failed to fetch card text:', error);
         return 'Unable to load card text.';
