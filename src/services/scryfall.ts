@@ -219,7 +219,23 @@ async function fetchAllListCards(): Promise<ScryfallCard[]> {
 /**
  * Get the image URL for a card, handling double-faced cards
  */
-export function getCardImageUrl(card: ScryfallCard, size: 'small' | 'normal' | 'large' = 'normal'): string {
+export function getCardImageUrl(
+    card: ScryfallCard,
+    size: 'small' | 'normal' | 'large' = 'normal',
+    face: 'front' | 'back' = 'front'
+): string {
+    // If requesting back face
+    if (face === 'back') {
+        if (card.card_faces && card.card_faces.length > 1 && card.card_faces[1].image_uris) {
+            return card.card_faces[1].image_uris[size];
+        }
+        // Fallback for cards that don't have a back face image (shouldn't happen if logic is correct)
+        // or just return the front if they ask for back but it doesn't exist?
+        // Let's return a card back placeholder if it's not a double faced card? 
+        // Or just return front. Let's return front for safety but maybe we should handle this in UI.
+    }
+
+    // Front face or single faced card
     if (card.image_uris) {
         return card.image_uris[size];
     }

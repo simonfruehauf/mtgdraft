@@ -133,9 +133,13 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
     // Hover state for zooming - persists until a new card is hovered
     const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
     const [cardText, setCardText] = useState<string>('');
+    const [isFlipped, setIsFlipped] = useState(false);
 
     function handleCardHover(card: ScryfallCard) {
-        setHoveredCard(card);
+        if (hoveredCard?.id !== card.id) {
+            setHoveredCard(card);
+            setIsFlipped(false);
+        }
     }
 
     // Effect to fetch card text when selection or hover changes
@@ -213,6 +217,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
             // Or maybe double click to confirm?
         } else {
             setSelectedCard(card);
+            setIsFlipped(false);
         }
     }
 
@@ -410,8 +415,17 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
                 {/* Large Card Preview */}
                 <div className="card-preview-area">
                     {previewCard ? (
-                        <div className={`preview-card fade-in ${shouldRotateCard(previewCard) ? 'rotated' : ''}`}>
-                            <Card card={previewCard} size="large" />
+                        <div
+                            className={`preview-card fade-in ${shouldRotateCard(previewCard) ? 'rotated' : ''} ${isFlipped ? 'flipped-view' : ''}`}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to flip"
+                        >
+                            <Card
+                                card={previewCard}
+                                size="large"
+                                face={isFlipped ? 'back' : 'front'}
+                            />
                         </div>
                     ) : (
                         <div className="preview-placeholder">

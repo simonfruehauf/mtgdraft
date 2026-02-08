@@ -9,6 +9,7 @@ interface CardProps {
     selected?: boolean;
     dimmed?: boolean;
     showTooltip?: boolean;
+    face?: 'front' | 'back';
 }
 
 /**
@@ -74,9 +75,10 @@ export function Card({
     onClick,
     selected = false,
     dimmed = false,
-    showTooltip = true
+    showTooltip = false, // Default to false now
+    face = 'front'
 }: CardProps) {
-    const imageUrl = getCardImageUrl(card, size === 'large' ? 'large' : 'normal');
+    const imageUrl = getCardImageUrl(card, size === 'large' ? 'large' : 'normal', face);
     const badges = getSpecialBadges(card);
     const hasSpecialBadges = badges.length > 0;
 
@@ -92,18 +94,21 @@ export function Card({
         hasSpecialBadges && 'has-badges'
     ].filter(Boolean).join(' ');
 
-    // Build tooltip text
-    const tooltipParts = [card.name];
-    if (badges.length > 0) {
-        tooltipParts.push(`(${badges.map(b => b.label).join(', ')})`);
+    // Build tooltip text (only if explicitly enabled)
+    let tooltipText: string | undefined;
+    if (showTooltip) {
+        const tooltipParts = [card.name];
+        if (badges.length > 0) {
+            tooltipParts.push(`(${badges.map(b => b.label).join(', ')})`);
+        }
+        tooltipText = tooltipParts.join(' ');
     }
-    const tooltipText = tooltipParts.join(' ');
 
     return (
         <div
             className={classNames}
             onClick={onClick}
-            title={showTooltip ? tooltipText : undefined}
+            title={tooltipText}
         >
             <img
                 src={imageUrl}

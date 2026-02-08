@@ -25,10 +25,14 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     const [exportFormat, setExportFormat] = useState<'mtga' | 'scryfall'>('mtga');
     // Track which cards in the current pack have been revealed (for flip animation)
     const [revealedCards, setRevealedCards] = useState<Set<number>>(new Set());
+    const [isFlipped, setIsFlipped] = useState(false);
 
     // Persistent hover handler - card stays displayed until a new one is hovered
     function handleCardHover(card: ScryfallCard) {
-        setHoveredCard(card);
+        if (hoveredCard?.id !== card.id) {
+            setHoveredCard(card);
+            setIsFlipped(false); // Reset flip state for new card
+        }
     }
 
     // Effect to fetch card text when hover changes
@@ -410,8 +414,17 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
             <div className="sealed-sidebar">
                 <div className="card-preview-area">
                     {previewCard ? (
-                        <div className={`preview-card fade-in ${shouldRotateCard(previewCard) ? 'rotated' : ''}`}>
-                            <Card card={previewCard} size="large" />
+                        <div
+                            className={`preview-card fade-in ${shouldRotateCard(previewCard) ? 'rotated' : ''} ${isFlipped ? 'flipped-view' : ''}`}
+                            onClick={() => setIsFlipped(!isFlipped)}
+                            style={{ cursor: 'pointer' }}
+                            title="Click to flip"
+                        >
+                            <Card
+                                card={previewCard}
+                                size="large"
+                                face={isFlipped ? 'back' : 'front'}
+                            />
                         </div>
                     ) : (
                         <div className="preview-placeholder">
