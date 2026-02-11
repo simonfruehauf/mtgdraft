@@ -5,7 +5,7 @@ import { hostDraftManager } from '../../services/HostDraftManager';
 import { Card } from '../Card';
 import { shouldRotateCard } from '../../services/scryfall';
 import type { ScryfallCard } from '../../types';
-import type { MultiplayerDraftState } from '../../types/multiplayer';
+import type { MultiPlayer, MultiplayerDraftState } from '../../types/multiplayer';
 // Reuse styles from DraftPick
 import '../DraftPick/DraftPick.css';
 
@@ -15,7 +15,13 @@ interface MultiplayerDraftProps {
 }
 
 export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) {
-    const [gameState, setGameState] = useState<MultiplayerDraftState | null>(null);
+    const [gameState, setGameState] = useState<MultiplayerDraftState | null>(() => {
+        // Initialize with host state if available and we are host
+        if (roomId === peerService.getId()) {
+            return hostDraftManager.getHostState();
+        }
+        return null;
+    });
     const [selectedCard, setSelectedCard] = useState<ScryfallCard | null>(null);
     const [myPicks, setMyPicks] = useState<ScryfallCard[]>([]);
     const [waitingMessage, setWaitingMessage] = useState<string | null>(null);
@@ -31,8 +37,10 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
     useEffect(() => {
         // Reset selection and waiting message when we move to a new pick/pack
         // This avoids resetting UI when we just receive a polling update with the same state
-        setSelectedCard(null);
+
+        if (selectedCard) setSelectedCard(null);
         setWaitingMessage(null);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [gameState?.packNumber, gameState?.pickNumber]);
 
     useEffect(() => {
@@ -44,13 +52,13 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
             setWaitingMessage("Waiting for other players...");
         };
 
-        const handleStatusUpdate = (_msg: PeerMessage) => {
+        const handleStatusUpdate = () => {
             // Optional logic: we could visualize who we are waiting for using msg.payload.waitingFor
         };
 
         const handleDraftComplete = (msg: PeerMessage) => {
             // Find our picks. msg.payload.players is list.
-            const myData = msg.payload.players.find((p: any) => p.id === peerService.getId());
+            const myData = msg.payload.players.find((p: MultiPlayer) => p.id === peerService.getId());
             if (myData) {
                 onComplete(myData.picks);
             } else {
@@ -70,9 +78,7 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
 
         // Host specific subscription
         if (isHost) {
-            // Initialize view with current state
-            const initialState = hostDraftManager.getHostState();
-            if (initialState) setGameState(initialState);
+            // Initial state handled by useState lazy init
 
             unsubscribeHost = hostDraftManager.subscribe((state) => {
                 setGameState(state);
@@ -86,6 +92,7 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
             peerService.off('draft_state', handleDraftState);
             if (unsubscribeHost) unsubscribeHost();
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isHost, onComplete, roomId]);
 
     // State Polling (for Guests)

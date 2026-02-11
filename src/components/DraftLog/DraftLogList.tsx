@@ -1,16 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DraftLogService } from '../../services/DraftLogService';
 import type { DraftLog } from '../../types';
 import './DraftLog.css';
 
 export function DraftLogList() {
-    const [logs, setLogs] = useState<DraftLog[]>([]);
+    const [logs, setLogs] = useState<DraftLog[]>(() => DraftLogService.getAllLogs());
     const navigate = useNavigate();
-
-    useEffect(() => {
-        setLogs(DraftLogService.getAllLogs());
-    }, []);
 
     const handleDelete = (e: React.MouseEvent, id: string) => {
         e.stopPropagation();
@@ -48,3 +44,5 @@ export function DraftLogList() {
         </div>
     );
 }
+
+

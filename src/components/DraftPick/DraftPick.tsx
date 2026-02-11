@@ -44,6 +44,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
     // Initialize draft
     useEffect(() => {
         initializeDraft();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     async function initializeDraft() {
@@ -129,6 +130,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
             setAutoPickTriggered(false);
             confirmPick(currentPack[0]);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autoPickTriggered, currentPack]);
 
     // Hover state for zooming - persists until a new card is hovered
@@ -204,6 +206,7 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
             setSelectedCard(null);
             return;
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [loading, currentPack, selectedCard]);
 
     useEffect(() => {

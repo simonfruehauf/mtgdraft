@@ -102,7 +102,7 @@ export async function fetchSetCards(setCode: string): Promise<ScryfallCard[]> {
             data: allCards,
             timestamp: Date.now()
         }));
-    } catch (e) {
+    } catch {
         // Storage quota exceeded - try to clear old cache entries
         console.warn('Cache storage full, clearing old entries...');
         clearOldCacheEntries();

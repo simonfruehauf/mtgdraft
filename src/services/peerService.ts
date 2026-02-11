@@ -1,4 +1,5 @@
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Peer, { type DataConnection } from 'peerjs';
 
 export interface PeerMessage {

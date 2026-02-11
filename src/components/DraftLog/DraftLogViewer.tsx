@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DraftLogService } from '../../services/DraftLogService';
 import type { DraftLog } from '../../types';
@@ -8,18 +8,17 @@ import './DraftLog.css';
 export function DraftLogViewer() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [log, setLog] = useState<DraftLog | null>(null);
+
+    const log = useMemo<DraftLog | null>(() => {
+        if (!id) return null;
+        return DraftLogService.getLog(id) ?? null;
+    }, [id]);
 
     useEffect(() => {
-        if (id) {
-            const found = DraftLogService.getLog(id);
-            if (found) {
-                setLog(found);
-            } else {
-                navigate('/draft/logs');
-            }
+        if (id && !log) {
+            navigate('/draft/logs');
         }
-    }, [id, navigate]);
+    }, [id, log, navigate]);
 
     if (!log) return <div>Loading...</div>;
 

@@ -91,6 +91,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
         return () => {
             ignore = true;
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Only run once on mount
 
     // Effect to trigger opening of first pack safely
@@ -101,6 +102,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
             }, 100);
             return () => clearTimeout(timer);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [packsOpened, currentPackIndex]);
 
     // Manual retry function

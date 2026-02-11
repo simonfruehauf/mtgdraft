@@ -15,7 +15,7 @@ interface LobbyProps {
 export function Lobby({ settings, onHostStart, onGameStart, onBack }: LobbyProps) {
     const [roomId, setRoomId] = useState('');
     const [joinRoomId, setJoinRoomId] = useState('');
-    const [playerName, setPlayerName] = useState('Player ' + Math.floor(Math.random() * 1000));
+    const [playerName, setPlayerName] = useState(() => 'Player ' + Math.floor(Math.random() * 1000));
     const [players, setPlayers] = useState<MultiPlayer[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isHost, setIsHost] = useState(false);

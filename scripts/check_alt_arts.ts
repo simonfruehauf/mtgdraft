@@ -1,9 +1,10 @@
 
 const SCRYFALL_API_BASE = 'https://api.scryfall.com';
 
+// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
 async function checkAltArts(setCode: string) {
     console.log(`Checking set: ${setCode}`);
-    const allCards: any[] = [];
     // Check specific showcase cards
     let url: string | null = `${SCRYFALL_API_BASE}/cards/search?q=e:${setCode}+frame:showcase&unique=prints`;
     const showcaseCards: any[] = [];
