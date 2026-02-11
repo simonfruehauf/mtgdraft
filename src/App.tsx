@@ -6,8 +6,7 @@ import { SealedOpener } from './components/SealedOpener';
 import { DraftComplete } from './components/DraftComplete';
 import { Lobby } from './components/Multiplayer/Lobby';
 import { MultiplayerDraft } from './components/Multiplayer/MultiplayerDraft';
-import { DraftLogList } from './components/DraftLog/DraftLogList';
-import { DraftLogViewer } from './components/DraftLog/DraftLogViewer';
+
 import type { ScryfallSet, BoosterType, DraftSettings, ScryfallCard } from './types';
 import { generateDraftBoosters } from './services/boosterGenerator';
 import { hostDraftManager } from './services/HostDraftManager';
@@ -215,7 +214,7 @@ function AppContent() {
           MTG Draft Simulator
         </a>
         <div className="nav-links">
-          <button className="btn btn-ghost" onClick={() => navigate('/draft/logs')}>History</button>
+
           {draftSettings && (
             <button className="btn btn-ghost" onClick={handleBackToHome}>
               New Draft
@@ -242,8 +241,7 @@ function AppContent() {
           <Route path="/lobby" element={<LobbyRoute />} />
           <Route path="/multiplayer/:roomId" element={<MultiplayerGameRoute />} />
           <Route path="/complete" element={<CompleteRoute />} />
-          <Route path="/draft/logs" element={<DraftLogList />} />
-          <Route path="/draft/log/:id" element={<DraftLogViewer />} />
+
         </Routes>
       </main>
     </div>
