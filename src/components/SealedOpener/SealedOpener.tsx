@@ -4,6 +4,7 @@ import { generateBooster } from '../../services/boosterGenerator';
 import { fetchSetCards, shouldRotateCard, fetchCardText } from '../../services/scryfall';
 import { formatOracleText } from '../../services/textFormatter';
 import { Card } from '../Card';
+import { PoolView } from '../PoolView/PoolView';
 import './SealedOpener.css';
 
 interface SealedOpenerProps {
@@ -173,75 +174,6 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     const displayPackIndex = allOpened ? packsOpened.length - 1 : currentPackIndex;
     const currentPack = displayPackIndex < packsOpened.length ? packsOpened[displayPackIndex] : null;
 
-    // IMPORTANT: Group cards by color identity
-    // Order: White, Blue, Black, Red, Green, Multicolor, Colorless, Land
-    const sortedPool = (() => {
-        if (openedCards.length === 0) return null;
-
-        const groups = {
-            White: [] as typeof openedCards,
-            Blue: [] as typeof openedCards,
-            Black: [] as typeof openedCards,
-            Red: [] as typeof openedCards,
-            Green: [] as typeof openedCards,
-            Multicolor: [] as typeof openedCards,
-            Colorless: [] as typeof openedCards,
-            Land: [] as typeof openedCards
-        };
-
-        openedCards.forEach(card => {
-            const colors = card.colors || [];
-            if (card.type_line && card.type_line.includes('Land')) {
-                groups.Land.push(card);
-            } else if (colors.length === 0) {
-                groups.Colorless.push(card);
-            } else if (colors.length > 1) {
-                groups.Multicolor.push(card);
-            } else if (colors.includes('W')) {
-                groups.White.push(card);
-            } else if (colors.includes('U')) {
-                groups.Blue.push(card);
-            } else if (colors.includes('B')) {
-                groups.Black.push(card);
-            } else if (colors.includes('R')) {
-                groups.Red.push(card);
-            } else if (colors.includes('G')) {
-                groups.Green.push(card);
-            } else {
-                groups.Colorless.push(card); // Fallback
-            }
-        });
-
-        // Helper to sort and group duplicates
-        const processGroup = (cards: typeof openedCards) => {
-            // Sort by name
-            cards.sort((a, b) => a.name.localeCompare(b.name));
-
-            // Group duplicates (by unique printing ID)
-            const uniqueCards = new Map<string, { card: ScryfallCard, count: number }>();
-            cards.forEach(card => {
-                const existing = uniqueCards.get(card.id);
-                if (existing) {
-                    existing.count++;
-                } else {
-                    uniqueCards.set(card.id, { card, count: 1 });
-                }
-            });
-            return Array.from(uniqueCards.values());
-        };
-
-        return {
-            White: processGroup(groups.White),
-            Blue: processGroup(groups.Blue),
-            Black: processGroup(groups.Black),
-            Red: processGroup(groups.Red),
-            Green: processGroup(groups.Green),
-            Multicolor: processGroup(groups.Multicolor),
-            Colorless: processGroup(groups.Colorless),
-            Land: processGroup(groups.Land)
-        };
-    })();
-
     // MTGA format
     function generateMTGAExport(): string {
         const lines: string[] = ['Deck'];
@@ -364,51 +296,52 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
                 )}
 
                 {/* Pool Display */}
-                {(showAllCards || allOpened) && sortedPool && (
-                    <div className="opened-cards-section">
-                        <h3>Your Pool ({openedCards.length} cards)</h3>
-                        <div className="pool-columns">
-                            {Object.entries(sortedPool).map(([color, cards]) => {
-                                if (cards.length === 0) return null;
-                                return (
-                                    <div key={color} className="pool-column">
-                                        <h4 className={`color-header color-${color.toLowerCase()}`}>
-                                            {color} ({cards.reduce((acc, c) => acc + c.count, 0)})
-                                        </h4>
-                                        <div className="color-cards">
-                                            {cards.map(({ card, count }, i) => (
-                                                <div
-                                                    key={`${card.id}-${i}`}
-                                                    className="pool-card-stack"
-                                                    onMouseEnter={() => handleCardHover(card)}
-                                                >
-                                                    <Card card={card} size="small" />
-                                                    {count > 1 && (
-                                                        <span className="card-count">x{count}</span>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                {(showAllCards || allOpened) && openedCards.length > 0 && (
+                    <PoolView
+                        cards={openedCards}
+                        onCardHover={handleCardHover}
+                        title="Your Pool"
+                        showAll={showAllCards}
+                        onToggleShowAll={!allOpened ? () => setShowAllCards(!showAllCards) : undefined}
+                        totalCardsCount={openedCards.length}
+                    />
                 )}
 
-                {/* Pool toggle (only if not finished) */}
-                {openedCards.length > 0 && !allOpened && (
+                {/* Pool toggle button logic is now inside PoolView if passed, or we can handle it here if we want to conditionally render PoolView (which we do). 
+                   Actually, PoolView has the toggle button inside it. 
+                   But here we control 'showAllCards'. 
+                   If '!allOpened', we want to show the toggle.
+                   Wait, my PoolView implementation rendered the toggle if 'onToggleShowAll' is provided.
+                   And it rendered the header.
+                   So I should pass onToggleShowAll.
+                */}
+
+                {/* Fallback for when pool is hidden but we want to show the toggle?
+                   No, if 'showAllCards' is false, we might still want to see the "Show Full Pool" button?
+                   Current logic:
+                   {(showAllCards || allOpened) && sortedPool && ( ... PoolView ... )}
+                   {openedCards.length > 0 && !allOpened && ( ... Toggle Button ... )}
+                   
+                   If showAllCards is false, PoolView is NOT rendered.
+                   So we need to render the toggle button separately if PoolView is not rendered?
+                   OR, we always render PoolView but tell it to be "collapsed"?
+                   No, my PoolView doesn't support "collapsed" mode where it only shows the header/button. It assumes it shows cards.
+                   
+                   Let's stick to the existing behavior:
+                   - If (showAllCards || allOpened), render PoolView. PoolView can have the "Hide" button.
+                   - If (!showAllCards && !allOpened), render just the "Show" button.
+                */}
+
+                {openedCards.length > 0 && !allOpened && !showAllCards && (
                     <div className="pool-toggle">
                         <button
-                            className={`btn ${showAllCards ? 'btn-primary' : 'btn-secondary'}`}
-                            onClick={() => setShowAllCards(!showAllCards)}
+                            className="btn btn-secondary"
+                            onClick={() => setShowAllCards(true)}
                         >
-                            {showAllCards ? 'Hide' : 'Show'} Full Pool ({openedCards.length} cards)
+                            Show Full Pool ({openedCards.length} cards)
                         </button>
                     </div>
                 )}
-
-
 
             </div>
 
