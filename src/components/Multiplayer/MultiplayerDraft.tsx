@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useDraft } from '../../context/DraftContext';
 import { peerService, type PeerMessage } from '../../services/peerService';
 import { hostDraftManager } from '../../services/HostDraftManager';
 import { Card } from '../Card';
@@ -102,8 +103,23 @@ export function MultiplayerDraft({ roomId, onComplete }: MultiplayerDraftProps) 
         return () => clearInterval(interval);
     }, [isHost, roomId]);
 
+    // Context for logging
+    const { logPick } = useDraft();
+
     function handleConfirmPick() {
         if (!selectedCard) return;
+
+        // Log the pick (optimistic logging for guest, real for host)
+        try {
+            logPick({
+                packNumber,
+                pickNumber,
+                pickedCard: selectedCard,
+                packCards: currentPack
+            });
+        } catch (e) {
+            console.error("Failed to log pick", e);
+        }
 
         if (isHost) {
             // Host action

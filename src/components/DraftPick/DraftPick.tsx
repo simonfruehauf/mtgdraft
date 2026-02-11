@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useDraft } from '../../context/DraftContext';
 import type { ScryfallCard, DraftSettings, BotPlayer } from '../../types';
 import { generateDraftBoosters } from '../../services/boosterGenerator';
 import { Card } from '../Card';
@@ -226,8 +227,23 @@ export function DraftPick({ settings, onComplete, onBack }: DraftPickProps) {
         confirmPick(card);
     }
 
+    // Context for logging
+    const { logPick } = useDraft();
+
     function confirmPick(card: ScryfallCard = selectedCard!) {
         if (!card) return;
+
+        // Log the pick
+        try {
+            logPick({
+                packNumber,
+                pickNumber,
+                pickedCard: card,
+                packCards: currentPack
+            });
+        } catch (e) {
+            console.error("Failed to log pick", e);
+        }
 
         // Add to picked cards
         const newPicked = [...pickedCards, card];

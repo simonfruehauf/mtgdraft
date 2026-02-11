@@ -129,3 +129,19 @@ export interface BotPlayer {
   colorPreferences: string[];  // Preferred colors based on early picks
   pickedCards: ScryfallCard[];
 }
+
+// Draft Log Types
+
+export interface DraftPickLog {
+  packNumber: number;
+  pickNumber: number;
+  pickedCard: ScryfallCard;
+  packCards: ScryfallCard[]; // The cards that were available in the pack
+}
+
+export interface DraftLog {
+  id: string;
+  date: number; // Timestamp
+  settings: DraftSettings;
+  picks: DraftPickLog[];
+}
