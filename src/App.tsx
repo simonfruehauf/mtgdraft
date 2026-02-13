@@ -11,6 +11,7 @@ import type { ScryfallSet, BoosterType, DraftSettings, ScryfallCard } from './ty
 import { generateDraftBoosters } from './services/boosterGenerator';
 import { hostDraftManager } from './services/HostDraftManager';
 import type { MultiPlayer } from './types/multiplayer';
+import { sortCards } from './utils/cardUtils';
 import './index.css';
 
 function DraftRoute() {
@@ -175,8 +176,9 @@ function CompleteRoute() {
         navigate('/draft');
       }}
       onExport={() => {
+        const sortedPicks = sortCards(picks);
         const lines = ['Deck'];
-        picks.forEach(card => {
+        sortedPicks.forEach(card => {
           lines.push(`1 ${card.name} (${card.set.toUpperCase()}) ${card.collector_number}`);
         });
         navigator.clipboard.writeText(lines.join('\n'));

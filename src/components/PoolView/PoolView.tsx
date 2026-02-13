@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { ScryfallCard } from '../../types';
 import { Card } from '../Card';
+import { groupCardsByColor } from '../../utils/cardUtils';
 import './PoolView.css';
 
 interface PoolViewProps {
@@ -25,39 +26,7 @@ export function PoolView({
     const sortedPool = useMemo(() => {
         if (cards.length === 0) return null;
 
-        const groups = {
-            White: [] as ScryfallCard[],
-            Blue: [] as ScryfallCard[],
-            Black: [] as ScryfallCard[],
-            Red: [] as ScryfallCard[],
-            Green: [] as ScryfallCard[],
-            Multicolor: [] as ScryfallCard[],
-            Colorless: [] as ScryfallCard[],
-            Land: [] as ScryfallCard[]
-        };
-
-        cards.forEach(card => {
-            const colors = card.colors || [];
-            if (card.type_line && card.type_line.includes('Land')) {
-                groups.Land.push(card);
-            } else if (colors.length === 0) {
-                groups.Colorless.push(card);
-            } else if (colors.length > 1) {
-                groups.Multicolor.push(card);
-            } else if (colors.includes('W')) {
-                groups.White.push(card);
-            } else if (colors.includes('U')) {
-                groups.Blue.push(card);
-            } else if (colors.includes('B')) {
-                groups.Black.push(card);
-            } else if (colors.includes('R')) {
-                groups.Red.push(card);
-            } else if (colors.includes('G')) {
-                groups.Green.push(card);
-            } else {
-                groups.Colorless.push(card);
-            }
-        });
+        const groups = groupCardsByColor(cards);
 
         const processGroup = (groupCards: ScryfallCard[]) => {
             // Sort by name

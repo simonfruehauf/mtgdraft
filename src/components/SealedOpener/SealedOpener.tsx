@@ -5,6 +5,7 @@ import { fetchSetCards, shouldRotateCard, fetchCardText } from '../../services/s
 import { formatOracleText } from '../../services/textFormatter';
 import { Card } from '../Card';
 import { PoolView } from '../PoolView/PoolView';
+import { sortCards } from '../../utils/cardUtils';
 import './SealedOpener.css';
 
 interface SealedOpenerProps {
@@ -178,7 +179,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     function generateMTGAExport(): string {
         const lines: string[] = ['Deck'];
         const cardCounts = new Map<string, { card: ScryfallCard, count: number }>();
-        openedCards.forEach(card => {
+        sortCards(openedCards).forEach(card => {
             const key = `${card.name}|${card.set}|${card.collector_number}`;
             const existing = cardCounts.get(key);
             if (existing) existing.count++;
@@ -194,7 +195,7 @@ export function SealedOpener({ settings, onBack }: SealedOpenerProps) {
     function generateScryfallExport(): string {
         const lines: string[] = ['// Pool - ' + settings.setName, ''];
         const cardCounts = new Map<string, { card: ScryfallCard, count: number }>();
-        openedCards.forEach(card => {
+        sortCards(openedCards).forEach(card => {
             const key = card.id;
             const existing = cardCounts.get(key);
             if (existing) existing.count++;

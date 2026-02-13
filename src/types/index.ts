@@ -33,6 +33,9 @@ export interface ScryfallCard {
   };
   card_faces?: Array<{
     name: string;
+    colors?: string[]; // Added colors
+    type_line?: string;
+    mana_cost?: string;
     image_uris?: {
       small: string;
       normal: string;
